@@ -31,11 +31,7 @@
 
         // Find our slider children
         var kids = slider.children();
-        kids.each(function() {
-            $(this).css('display','none');
-
-            vars.totalSlides++;
-        });
+        vars.totalSlides = kids.length;
 
         // Set startSlide
         if(settings.startSlide > 0){
@@ -43,25 +39,21 @@
             vars.currentSlide = settings.startSlide;
         }
 
-        // Get initial entry
-        if($(kids[vars.currentSlide]).is('div.nivoSliderEntry')){
-            vars.currentEntry = $(kids[vars.currentSlide]);
-        } else {
-            vars.currentEntry = $(kids[vars.currentSlide]).find('div.nivoSliderEntry');
-        }
-
         // Show initial entry
         if($(kids[vars.currentSlide]).is('div.nivoSliderEntry')){
-            $(kids[vars.currentSlide]).show();
+            vars.currentEntry = $(kids[vars.currentSlide]);
+            vars.currentEntry.show();
 
-            var img = $('img:first',kids[vars.currentSlide]);
-            // Get img width & height
-            var imgWidth = (imgWidth === 0) ? img.attr('width') : img.width(),
-                imgHeight = (imgHeight === 0) ? img.attr('height') : img.height();
+            vars.currentEntry.css({
+                'z-index': 6,
+                'opacity': 1
+            });
+
+            // Get img height
+            var img = $('img:first',vars.currentEntry);
+            var imgHeight = (imgHeight === 0) ? img.attr('height') : img.height();
 
             slider.css('height', imgHeight);
-            vars.currentEntry.css('z-index', 6);
-            vars.currentEntry.css('opacity', 1);
         }
 
         // In the words of Super Mario "let's a go!"
@@ -78,7 +70,9 @@
                 if(vars.running) { return false; }
                 clearInterval(timer);
                 timer = '';
-                vars.currentSlide -= 2;
+
+                vars.nextSlide -= 2;
+
                 nivoRun(slider, kids, settings, 'prev');
             });
 
@@ -95,16 +89,7 @@
             vars.controlNavEl = $('<div class="nivo-controlNav"></div>');
             slider.after(vars.controlNavEl);
             for(var i = 0; i < kids.length; i++){
-                if(settings.controlNavThumbs){
-                    vars.controlNavEl.addClass('nivo-thumbs-enabled');
-                    var child = kids.eq(i);
-                    if(!child.is('img')){
-                        child = child.find('img:first');
-                    }
-                    if(child.attr('data-thumb')) vars.controlNavEl.append('<a class="nivo-control" rel="'+ i +'"><img src="'+ child.attr('data-thumb') +'" alt="" /></a>');
-                } else {
-                    vars.controlNavEl.append('<a class="nivo-control" rel="'+ i +'">'+ (i + 1) +'</a>');
-                }
+                vars.controlNavEl.append('<a class="nivo-control" rel="'+ i +'">'+ (i + 1) +'</a>');
             }
 
             //Set initial active link
@@ -115,8 +100,8 @@
                 if($(this).hasClass('active')) return false;
                 clearInterval(timer);
                 timer = '';
-                sliderImg.attr('src', vars.currentImage.attr('src'));
-                vars.currentSlide = $(this).attr('rel') - 1;
+
+                vars.nextSlide = $(this).attr('rel');
                 nivoRun(slider, kids, settings, 'control');
             });
         }
@@ -154,7 +139,7 @@
             var vars = slider.data('nivo:vars');
 
             // Trigger the lastSlide callback
-            if(vars && (vars.currentSlide === vars.totalSlides - 1)){
+            if(vars && (vars.nextSlide === vars.totalSlides)){
                 settings.lastSlide.call(this);
             }
 
@@ -164,25 +149,27 @@
             // Trigger the beforeChange callback
             settings.beforeChange.call(this);
 
-            //vars.currentSlide++;
+            if(vars.nextSlide < 0) { vars.nextSlide = (vars.totalSlides - 1);  }
+
             // Trigger the slideshowEnd callback
-            if(vars.nextSlide === vars.totalSlides){
+            if(vars.nextSlide === vars.totalSlides && (nudge !== 'prev')){
                 vars.nextSlide = 0;
                 settings.slideshowEnd.call(this);
             }
 
-            // Set vars.currentImage
+            // Set vars.currentEntry
             if($(kids[vars.currentSlide]).is('div.nivoSliderEntry')){
                 vars.currentEntry = $(kids[vars.currentSlide]);
             }
-            // Set vars.currentImage
+            // Set vars.nextEntry
             if($(kids[vars.nextSlide]).is('div.nivoSliderEntry')){
                 vars.nextEntry = $(kids[vars.nextSlide]);
             }
+
             // Set active links
             if(settings.controlNav){
                 $('a', vars.controlNavEl).removeClass('active');
-                $('a:eq('+ vars.currentSlide +')', vars.controlNavEl).addClass('active');
+                $('a:eq('+ vars.nextSlide +')', vars.controlNavEl).addClass('active');
             }
 
             var currentEffect = settings.effect;
@@ -259,11 +246,10 @@
     $.fn.nivoSlider.defaults = {
         effect: 'fade',
         animSpeed: 500,
-        pauseTime: 3000,
+        pauseTime: 7000,
         startSlide: 0,
         directionNav: true,
         controlNav: true,
-        controlNavThumbs: false,
         pauseOnHover: true,
         manualAdvance: false,
         prevText: 'Prev',
