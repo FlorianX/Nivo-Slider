@@ -1,5 +1,9 @@
 /*
- * jQuery Nivo Slider v3.2
+ *
+ * jQuery Nivo Slider KIS 1.0
+ * https://github.com/FlorianX/Nivo-Slider
+ *
+ * Forked from: jQuery Nivo Slider v3.2
  * http://nivo.dev7studios.com
  *
  * Copyright 2012, Dev7studios
@@ -43,7 +47,7 @@
             // Get img height
             var img = $('img:first',forEntry),
                 imgHeight = (imgHeight === 0) ? img.attr('height') : img.height(),
-                imgWidth = (imgWidth=== 0) ? img.attr('width') : img.width();
+                imgWidth = (imgWidth === 0) ? img.attr('width') : img.width();
 
             slider.css({
                 height: imgHeight,
