@@ -30,7 +30,7 @@
         slider.data('nivo:vars', vars).addClass('nivoSlider');
 
         // Find our slider children
-        var kids = slider.children();
+        var kids = slider.children('div.nivoSliderEntry');
         vars.totalSlides = kids.length;
 
         // Set startSlide
@@ -39,8 +39,24 @@
             vars.currentSlide = settings.startSlide;
         }
 
+        var processSliderDimension = function(forEntry) {
+            // Get img height
+            var img = $('img:first',forEntry),
+                imgHeight = (imgHeight === 0) ? img.attr('height') : img.height(),
+                imgWidth = (imgWidth=== 0) ? img.attr('width') : img.width();
+
+            slider.css({
+                height: imgHeight,
+                width:imgWidth
+            });
+            forEntry.css({
+                height: imgHeight,
+                width:imgWidth
+            });
+
+        };
         // Show initial entry
-        if($(kids[vars.currentSlide]).is('div.nivoSliderEntry')){
+        if($(kids[vars.currentSlide])){
             vars.currentEntry = $(kids[vars.currentSlide]);
             vars.currentEntry.show();
 
@@ -49,11 +65,7 @@
                 'opacity': 1
             });
 
-            // Get img height
-            var img = $('img:first',vars.currentEntry);
-            var imgHeight = (imgHeight === 0) ? img.attr('height') : img.height();
-
-            slider.css('height', imgHeight);
+            processSliderDimension(vars.currentEntry);
         }
 
         // In the words of Super Mario "let's a go!"
@@ -158,11 +170,11 @@
             }
 
             // Set vars.currentEntry
-            if($(kids[vars.currentSlide]).is('div.nivoSliderEntry')){
+            if($(kids[vars.currentSlide])){
                 vars.currentEntry = $(kids[vars.currentSlide]);
             }
             // Set vars.nextEntry
-            if($(kids[vars.nextSlide]).is('div.nivoSliderEntry')){
+            if($(kids[vars.nextSlide])){
                 vars.nextEntry = $(kids[vars.nextSlide]);
             }
 
@@ -178,6 +190,9 @@
             vars.running = true;
             if(currentEffect === 'fade'){
                 vars.nextEntry.show();
+
+                processSliderDimension(vars.nextEntry);
+
                 vars.currentEntry.animate({
                     'opacity': 0.0,
                     'z-index': 5
@@ -185,7 +200,10 @@
                         'duration': (settings.animSpeed*2),
                         'queue': false,
                         'complete': function(){
-                            $(this).hide();
+                            $(this).css({
+                               'z-index': '',
+                               'opacity': ''
+                            }).hide();
                         }
                     });
                 vars.nextEntry.animate({
