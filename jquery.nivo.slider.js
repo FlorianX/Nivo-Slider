@@ -44,20 +44,31 @@
         }
 
         var processSliderDimension = function(forEntry) {
+
+            var callBack = function($img){
+                var imgHeight = $img.height(),
+                    imgWidth = $img.width();
+
+                        slider.css({
+                            height: imgHeight,
+                            width:imgWidth
+                        });
+                        forEntry.css({
+                            height: imgHeight,
+                            width:imgWidth
+                        });
+            };
+
             // Get img height
-            var img = $('img:first',forEntry),
-                imgHeight = (imgHeight === 0) ? img.attr('height') : img.height(),
-                imgWidth = (imgWidth === 0) ? img.attr('width') : img.width();
-
-            slider.css({
-                height: imgHeight,
-                width:imgWidth
+            $('img:first',forEntry).each(function(){
+                if($(this).height() > 0){
+                    callBack($(this));
+                } else {
+                    $(this).load(function(){
+                        callBack($(this));
+                    });
+                }
             });
-            forEntry.css({
-                height: imgHeight,
-                width:imgWidth
-            });
-
         };
         // Show initial entry
         if($(kids[vars.currentSlide])){
